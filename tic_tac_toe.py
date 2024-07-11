@@ -1,36 +1,60 @@
-def print_board(board):
-    for row in board:
-        print(" | ".join(row))
-        print("-" * 5)
+import tkinter as tk
+from tkinter import messagebox
 
-def check_winner(board, player):
-    for row in board:
-        if all(s == player for s in row):
-            return True
-    for col in range(3):
-        if all(row[col] == player for row in board):
-            return True
-    if all(board[i][i] == player for i in range(3)) or all(board[i][2 - i] == player for i in range(3)):
-        return True
-    return False
+class TicTacToe:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Tic Tac Toe")
+        self.root.resizable(False, False)
+        self.board = [" " for _ in range(9)]
+        self.current_player = "X"
+        self.buttons = []
 
-def main():
-    board = [[" " for _ in range(3)] for _ in range(3)]
-    current_player = "X"
-    for _ in range(9):
-        print_board(board)
-        row, col = map(int, input(f"Player {current_player}, enter row and column (0, 1, 2): ").split())
-        if board[row][col] == " ":
-            board[row][col] = current_player
-            if check_winner(board, current_player):
-                print_board(board)
-                print(f"Player {current_player} wins!")
-                return
-            current_player = "O" if current_player == "X" else "X"
-        else:
-            print("Cell already taken, try again.")
-    print_board(board)
-    print("It's a tie!")
+        self.create_board()
+
+    def create_board(self):
+        for i in range(3):
+            row = []
+            for j in range(3):
+                button = tk.Button(self.root, text=" ", font='Helvetica 20 bold', height=3, width=6,
+                                   command=lambda i=i, j=j: self.on_click(i, j))
+                button.grid(row=i, column=j)
+                row.append(button)
+            self.buttons.append(row)
+
+    def on_click(self, i, j):
+        index = 3 * i + j
+        if self.board[index] == " ":
+            self.board[index] = self.current_player
+            self.buttons[i][j].config(text=self.current_player)
+            if self.check_winner():
+                messagebox.showinfo("Tic Tac Toe", f"Player {self.current_player} wins!")
+                self.reset_board()
+            elif " " not in self.board:
+                messagebox.showinfo("Tic Tac Toe", "It's a tie!")
+                self.reset_board()
+            else:
+                self.current_player = "O" if self.current_player == "X" else "X"
+
+    def check_winner(self):
+        win_conditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],  # rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],  # columns
+            [0, 4, 8], [2, 4, 6]              # diagonals
+        ]
+        for condition in win_conditions:
+            if self.board[condition[0]] == self.board[condition[1]] == self.board[condition[2]] != " ":
+                return True
+        return False
+
+    def reset_board(self):
+        self.board = [" " for _ in range(9)]
+        self.current_player = "X"
+        for row in self.buttons:
+            for button in row:
+                button.config(text=" ")
 
 if __name__ == "__main__":
-    main()
+    root = tk.Tk()
+    game = TicTacToe(root)
+    root.mainloop()
